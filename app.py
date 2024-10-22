@@ -10,25 +10,26 @@ except ModuleNotFoundError:
 # Set your OpenAI API key (ensure it's secure in a production environment)
 openai.api_key = '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'
 
-# Function to handle mathematical questions using the text-davinci-002 engine
-def math_chatbot(question, conversation_id=None):
+# Function to handle mathematical questions using the new API
+def math_chatbot(question):
     try:
         # Create the prompt for the question
         prompt = f"Answer the following mathematical question: {question}"
 
-        # Call the OpenAI API using text-davinci-002 engine
-        response = openai.Completion.create(
-            engine="text-davinci-002",  # Change engine as needed
-            prompt=prompt,
+        # Call the OpenAI API using ChatCompletion for newer versions
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # You can use text-davinci-002 for more complex completions
+            messages=[
+                {"role": "system", "content": "You are an expert mathematician."},
+                {"role": "user", "content": prompt}
+            ],
             temperature=0.5,
             max_tokens=50,
-            n=1,
-            stop=None,
-            context=conversation_id  # Optional: Use conversation context if necessary
+            n=1
         )
 
         # Extract the response text
-        answer = response['choices'][0]['text'].strip()
+        answer = response['choices'][0]['message']['content'].strip()
     except Exception as e:
         answer = f"Error: {e}"
     
