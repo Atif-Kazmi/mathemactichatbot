@@ -1,30 +1,40 @@
-# Install dependencies: Run this in your terminal before running the script
-# pip install openai streamlit
-
-import openai
 import streamlit as st
 
-# Set your OpenAI API key
+# Try importing openai and handle potential import errors
+try:
+    import openai
+except ModuleNotFoundError:
+    st.error("The OpenAI library is not installed. Please ensure it is listed in requirements.txt and reinstall.")
+    st.stop()  # Stop further execution if openai is not installed
+
+# Set your OpenAI API key (ensure it's secure in a production environment)
 openai.api_key = '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'
 
-# Function to handle mathematical questions
-def math_chatbot(question):
+# Function to handle mathematical questions using the text-davinci-002 engine
+def math_chatbot(question, conversation_id=None):
     try:
-        # Call the OpenAI API to get the answer
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # or "gpt-4" if you have access
-            messages=[
-                {"role": "user", "content": question}
-            ]
+        # Create the prompt for the question
+        prompt = f"Answer the following mathematical question: {question}"
+
+        # Call the OpenAI API using text-davinci-002 engine
+        response = openai.Completion.create(
+            engine="text-davinci-002",  # Change engine as needed
+            prompt=prompt,
+            temperature=0.5,
+            max_tokens=50,
+            n=1,
+            stop=None,
+            context=conversation_id  # Optional: Use conversation context if necessary
         )
+
         # Extract the response text
-        answer = response['choices'][0]['message']['content']
+        answer = response['choices'][0]['text'].strip()
     except Exception as e:
         answer = f"Error: {e}"
-
+    
     return answer
 
-# Streamlit app
+# Streamlit app interface
 st.title("Math Chatbot")
 st.write("Ask any mathematical question and get an answer from the OpenAI model.")
 
