@@ -1,43 +1,38 @@
 import streamlit as st
+from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
 
-# Try importing openai and handle potential import errors
-try:
-    import openai
-except ModuleNotFoundError:
-    st.error("The OpenAI library is not installed. Please ensure it is listed in requirements.txt and reinstall.")
-    st.stop()  # Stop further execution if openai is not installed
+# Load the GPT-Neo model from Hugging Face
+@st.cache_resource  # Cache the model to avoid reloading
+def load_model():
+    model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B")
+    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B")
+    generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    return generator
 
-# Set your OpenAI API key (ensure it's secure in a production environment)
-openai.api_key = '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'
+generator = load_model()
 
-# Function to handle mathematical questions using the new API
+# Function to check if the question is related to mathematics
+def is_math_question(question):
+    math_keywords = ["calculate", "solve", "equation", "add", "subtract", "multiply", "divide", "integral", "derivative", "geometry", "algebra", "calculus", "math"]
+    return any(keyword in question.lower() for keyword in math_keywords)
+
+# Function to handle mathematical questions
 def math_chatbot(question):
+    if not is_math_question(question):
+        return "This chatbot only answers questions related to mathematics. Please ask a mathematical question."
+    
     try:
-        # Create the prompt for the question
-        prompt = f"Answer the following mathematical question: {question}"
-
-        # Call the OpenAI API using ChatCompletion for newer versions
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # You can use text-davinci-002 for more complex completions
-            messages=[
-                {"role": "system", "content": "You are an expert mathematician."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=50,
-            n=1
-        )
-
-        # Extract the response text
-        answer = response['choices'][0]['message']['content'].strip()
+        # Generate the answer using GPT-Neo
+        result = generator(question, max_length=100, num_return_sequences=1)
+        answer = result[0]['generated_text']
     except Exception as e:
         answer = f"Error: {e}"
     
     return answer
 
 # Streamlit app interface
-st.title("Math Chatbot")
-st.write("Ask any mathematical question and get an answer from the OpenAI model.")
+st.title("Math Chatbot (Open Source)")
+st.write("Ask any mathematical question and get an answer. Non-mathematical questions will be restricted.")
 
 # Input box for the question
 question = st.text_input("Enter your mathematical question:", "")
