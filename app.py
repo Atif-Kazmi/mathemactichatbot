@@ -49,9 +49,9 @@ def math_chatbot(question):
         except (ValueError, IndexError):
             return "Could not understand the radius. Please specify the radius clearly."
     
-    # Handle basic arithmetic operations
     # Check if the question is a simple math expression
-    if re.match(r'^\s*\d+\s*[\+\-\*/]\s*\d+\s*$', question):  # Regex to match simple expressions like "25 + 75"
+    # Match expressions like "25 + 75" (spaces optional)
+    if re.match(r'^\s*\d+\s*[\+\-\*/]\s*\d+\s*$', question):
         return f"The answer is {evaluate_expression(question)}."
 
     # If it's not a specific case, use the model to generate an answer
