@@ -1,6 +1,7 @@
 import streamlit as st
 from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
 import math
+import re
 
 # Load the smaller GPT-Neo model from Hugging Face
 @st.cache_resource  # Cache the model to avoid reloading
@@ -25,6 +26,14 @@ def is_math_question(question):
     ]
     return any(keyword in question.lower() for keyword in math_keywords)
 
+# Function to evaluate simple arithmetic expressions
+def evaluate_expression(expression):
+    try:
+        # Evaluate the mathematical expression safely
+        return eval(expression)
+    except Exception:
+        return "I couldn't evaluate that expression."
+
 # Function to handle mathematical questions
 def math_chatbot(question):
     # Check if the question is related to mathematics
@@ -34,13 +43,17 @@ def math_chatbot(question):
     # Handle specific mathematical problems
     if "area of a circle" in question.lower():
         try:
-            # Extract the radius from the question
             radius = float(question.split("radius of ")[1].split()[0])
-            area = math.pi * (radius ** 2)  # Calculate the area
+            area = math.pi * (radius ** 2)
             return f"The area of a circle with a radius of {radius} units is {area:.2f} square units."
         except (ValueError, IndexError):
             return "Could not understand the radius. Please specify the radius clearly."
     
+    # Handle basic arithmetic operations
+    # Check if the question is a simple math expression
+    if re.match(r'^\s*\d+\s*[\+\-\*/]\s*\d+\s*$', question):  # Regex to match simple expressions like "25 + 75"
+        return f"The answer is {evaluate_expression(question)}."
+
     # If it's not a specific case, use the model to generate an answer
     prompt = f"Answer the following math question: {question}"
     result = generator(prompt, max_length=100, num_return_sequences=1)
