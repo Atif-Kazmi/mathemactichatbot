@@ -2,6 +2,7 @@ import streamlit as st
 from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
 import math
 import re
+import sympy as sp
 
 # Load the smaller GPT-Neo model from Hugging Face
 @st.cache_resource  # Cache the model to avoid reloading
@@ -16,21 +17,24 @@ generator = load_model()
 
 # Function to check if the question is related to mathematics
 def is_math_question(question):
+    # Keywords for various mathematical fields
     math_keywords = [
         "calculate", "solve", "area", "perimeter", "volume", "equation",
         "add", "subtract", "multiply", "divide", "integral", "derivative", 
-        "geometry", "algebra", "calculus", "mean", "median", "mode", 
-        "standard deviation", "variance", "probability", "function", 
-        "trigonometry", "what is the value of", "solve for", "find",
-        "radius", "diameter", "circle", "square", "triangle", "rectangle"
+        "geometry", "algebra", "calculus", "trigonometry", "statistics",
+        "mean", "median", "mode", "standard deviation", "variance", 
+        "probability", "function", "what is the value of", "solve for", "find",
+        "radius", "diameter", "circle", "square", "triangle", "rectangle",
+        "sine", "cosine", "tangent", "pythagorean", "quadratic", "polynomial",
+        "factor", "roots", "solutions"
     ]
     return any(keyword in question.lower() for keyword in math_keywords)
 
 # Function to evaluate simple arithmetic expressions
 def evaluate_expression(expression):
     try:
-        # Evaluate the mathematical expression safely
-        return eval(expression)
+        # Evaluate the mathematical expression safely using sympy
+        return sp.sympify(expression).evalf()  # Using sympy for better evaluation
     except Exception:
         return "I couldn't evaluate that expression."
 
@@ -49,15 +53,28 @@ def math_chatbot(question):
         except (ValueError, IndexError):
             return "Could not understand the radius. Please specify the radius clearly."
     
+    # Handle algebraic equations
+    if "solve" in question.lower() or "equation" in question.lower():
+        try:
+            equation = re.search(r'solve for (.+?)$', question, re.IGNORECASE)
+            if equation:
+                x = sp.symbols('x')
+                expr = equation.group(1).strip()
+                solution = sp.solve(expr, x)
+                return f"The solution to the equation {expr} is: {solution}"
+        except Exception:
+            return "Could not solve the equation. Please ensure it is in the correct format."
+
     # Check if the question is a simple math expression
-    # Match expressions like "25 + 75" (spaces optional)
-    if re.match(r'^\s*\d+\s*[\+\-\*/]\s*\d+\s*$', question):
-        return f"The answer is {evaluate_expression(question)}."
+    if re.match(r'^\s*\d+\s*[\+\-\*/]\s*\d+\s*$', question) or re.match(r'^\s*\d+\s*(plus|minus|times|divided by)\s*\d+\s*$', question):
+        # Replace words with symbols for evaluation
+        expression = question.replace("plus", "+").replace("minus", "-").replace("times", "*").replace("divided by", "/")
+        return f"The answer is {evaluate_expression(expression)}."
 
     # If it's not a specific case, use the model to generate an answer
     prompt = f"Answer the following math question: {question}"
     result = generator(prompt, max_length=100, num_return_sequences=1)
-    answer = result[0]['generated_text']
+    answer = result[0]['generated_text'].strip()
     
     return answer
 
