@@ -15,11 +15,12 @@ generator = load_model()
 # Function to check if the question is related to mathematics
 def is_math_question(question):
     math_keywords = [
-        "calculate", "solve", "equation", "add", "subtract", "multiply",
-        "divide", "integral", "derivative", "geometry", "algebra", 
-        "calculus", "math", "mean", "median", "mode", "standard deviation",
-        "variance", "probability", "function", "trigonometry", 
-        "what is the value of", "solve for", "find"
+        "calculate", "solve", "area", "perimeter", "volume", "equation",
+        "add", "subtract", "multiply", "divide", "integral", "derivative", 
+        "geometry", "algebra", "calculus", "mean", "median", "mode", 
+        "standard deviation", "variance", "probability", "function", 
+        "trigonometry", "what is the value of", "solve for", "find",
+        "radius", "diameter", "circle", "square", "triangle", "rectangle"
     ]
     return any(keyword in question.lower() for keyword in math_keywords)
 
@@ -29,8 +30,9 @@ def math_chatbot(question):
         return "This chatbot only answers questions related to mathematics. Please ask a mathematical question."
     
     try:
-        # Generate the answer using the smaller model with reduced max_length
-        result = generator(question, max_length=50, num_return_sequences=1)
+        # Generate the answer using the model
+        prompt = f"Answer the following math question: {question}"
+        result = generator(prompt, max_length=100, num_return_sequences=1)
         answer = result[0]['generated_text']
     except Exception as e:
         answer = f"Error: {e}"
