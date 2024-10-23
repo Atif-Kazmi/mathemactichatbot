@@ -18,8 +18,11 @@ def is_math_question(question):
         "calculate", "solve", "equation", "add", "subtract", "multiply",
         "divide", "integral", "derivative", "geometry", "algebra", 
         "calculus", "math", "mean", "median", "mode", "standard deviation",
-        "variance", "probability", "function", "trigonometry"
+        "variance", "probability", "function", "trigonometry", 
+        "what is the value of", "solve for", "find"
     ]
+    
+    # Check if the question contains any mathematical keywords
     return any(keyword in question.lower() for keyword in math_keywords)
 
 # Function to handle mathematical questions
