@@ -13,7 +13,13 @@ generator = load_model()
 
 # Function to check if the question is related to mathematics
 def is_math_question(question):
-    math_keywords = ["calculate", "solve", "equation", "add", "subtract", "multiply", "divide", "integral", "derivative", "geometry", "algebra", "calculus", "math"]
+    # Expanded set of keywords to include more mathematical contexts
+    math_keywords = [
+        "calculate", "solve", "equation", "add", "subtract", "multiply",
+        "divide", "integral", "derivative", "geometry", "algebra", 
+        "calculus", "math", "mean", "median", "mode", "standard deviation",
+        "variance", "probability", "function", "trigonometry"
+    ]
     return any(keyword in question.lower() for keyword in math_keywords)
 
 # Function to handle mathematical questions
