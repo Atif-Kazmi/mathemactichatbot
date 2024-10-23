@@ -1,5 +1,6 @@
 import streamlit as st
 from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
+import math
 
 # Load the smaller GPT-Neo model from Hugging Face
 @st.cache_resource  # Cache the model to avoid reloading
@@ -26,16 +27,24 @@ def is_math_question(question):
 
 # Function to handle mathematical questions
 def math_chatbot(question):
+    # Check if the question is related to mathematics
     if not is_math_question(question):
         return "This chatbot only answers questions related to mathematics. Please ask a mathematical question."
+
+    # Handle specific mathematical problems
+    if "area of a circle" in question.lower():
+        try:
+            # Extract the radius from the question
+            radius = float(question.split("radius of ")[1].split()[0])
+            area = math.pi * (radius ** 2)  # Calculate the area
+            return f"The area of a circle with a radius of {radius} units is {area:.2f} square units."
+        except (ValueError, IndexError):
+            return "Could not understand the radius. Please specify the radius clearly."
     
-    try:
-        # Generate the answer using the model
-        prompt = f"Answer the following math question: {question}"
-        result = generator(prompt, max_length=100, num_return_sequences=1)
-        answer = result[0]['generated_text']
-    except Exception as e:
-        answer = f"Error: {e}"
+    # If it's not a specific case, use the model to generate an answer
+    prompt = f"Answer the following math question: {question}"
+    result = generator(prompt, max_length=100, num_return_sequences=1)
+    answer = result[0]['generated_text']
     
     return answer
 
