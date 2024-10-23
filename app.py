@@ -1,11 +1,11 @@
 import streamlit as st
 from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
 
-# Load the GPT-Neo model from Hugging Face
+# Load the smaller GPT-Neo model from Hugging Face
 @st.cache_resource  # Cache the model to avoid reloading
 def load_model():
-    model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B")
-    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B")
+    model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")  # Smaller model
+    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
     generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
     return generator
 
@@ -13,7 +13,6 @@ generator = load_model()
 
 # Function to check if the question is related to mathematics
 def is_math_question(question):
-    # Expanded set of keywords to include more mathematical contexts
     math_keywords = [
         "calculate", "solve", "equation", "add", "subtract", "multiply",
         "divide", "integral", "derivative", "geometry", "algebra", 
@@ -21,8 +20,6 @@ def is_math_question(question):
         "variance", "probability", "function", "trigonometry", 
         "what is the value of", "solve for", "find"
     ]
-    
-    # Check if the question contains any mathematical keywords
     return any(keyword in question.lower() for keyword in math_keywords)
 
 # Function to handle mathematical questions
@@ -31,8 +28,8 @@ def math_chatbot(question):
         return "This chatbot only answers questions related to mathematics. Please ask a mathematical question."
     
     try:
-        # Generate the answer using GPT-Neo
-        result = generator(question, max_length=100, num_return_sequences=1)
+        # Generate the answer using the smaller model with reduced max_length
+        result = generator(question, max_length=50, num_return_sequences=1)
         answer = result[0]['generated_text']
     except Exception as e:
         answer = f"Error: {e}"
