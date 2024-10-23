@@ -4,11 +4,12 @@ from transformers import pipeline, GPTNeoForCausalLM, AutoTokenizer
 # Load the smaller GPT-Neo model from Hugging Face
 @st.cache_resource  # Cache the model to avoid reloading
 def load_model():
-    model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")  # Smaller model
+    model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")  # Smaller model for faster loading
     tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
     generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
     return generator
 
+# Load the model only once at the start
 generator = load_model()
 
 # Function to check if the question is related to mathematics
